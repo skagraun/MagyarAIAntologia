@@ -5,6 +5,8 @@
  * Futtatás:  npm run db:seed   (előbb db:push vagy db:migrate kell)
  */
 import { config } from "dotenv";
+// A Vercel CLI alapból .env.development.local-ba húzza az env-et.
+config({ path: ".env.development.local" });
 config({ path: ".env.local" });
 config({ path: ".env" });
 
