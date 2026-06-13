@@ -1,0 +1,17 @@
+{
+  "name": "magyar-ai-antologia-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only MCP szerver a Magyar AI Antológia adatbázisához (Claude Desktop).",
+  "bin": {
+    "mai-mcp": "server.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "pg": "^8.13.1"
+  }
+}
