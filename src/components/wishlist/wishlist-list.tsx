@@ -6,6 +6,7 @@ import { coverUrl, formatHuDate, normalizeForSearch } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SearchBar } from "@/components/search-bar";
+import { FilterSelect } from "@/components/filter-select";
 import { YoutubeLink } from "@/components/media";
 import { DeleteButton } from "@/components/delete-button";
 import { feasibleLabel, feasibleVariant } from "@/lib/labels";
@@ -17,28 +18,45 @@ import {
 
 export function WishlistList({ items }: { items: WishlistFormData[] }) {
   const [query, setQuery] = useState("");
+  const [feasible, setFeasible] = useState("all");
 
   const filtered = useMemo(() => {
     const q = normalizeForSearch(query);
-    if (!q) return items;
-    return items.filter((i) =>
-      normalizeForSearch(
+    return items.filter((i) => {
+      if (feasible !== "all" && i.feasible !== feasible) return false;
+      if (!q) return true;
+      return normalizeForSearch(
         `${i.requestedBy} ${i.author ?? ""} ${i.title}`,
-      ).includes(q),
-    );
-  }, [items, query]);
+      ).includes(q);
+    });
+  }, [items, query, feasible]);
+
+  const hasFilter = query !== "" || feasible !== "all";
 
   return (
     <div className="space-y-4">
-      <SearchBar
-        value={query}
-        onChange={setQuery}
-        placeholder="Keresés kérőre, szerzőre, címre…"
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder="Keresés kérőre, szerzőre, címre…"
+        />
+        <FilterSelect
+          value={feasible}
+          onChange={setFeasible}
+          aria-label="Elkészíthetőség szűrő"
+          options={[
+            { value: "all", label: "Mind (elkészíthető?)" },
+            { value: "yes", label: feasibleLabel.yes },
+            { value: "maybe", label: feasibleLabel.maybe },
+            { value: "no", label: feasibleLabel.no },
+          ]}
+        />
+      </div>
 
-      {query && (
+      {hasFilter && (
         <p className="text-sm text-muted-foreground">
-          {filtered.length} találat a(z) „{query}" keresésre
+          {filtered.length} találat (összesen {items.length})
         </p>
       )}
 

@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SubmitButton } from "@/components/submit-button";
 import { Cover } from "@/components/media";
+import { Emoji } from "@/components/emoji";
 import {
   Dialog,
   DialogContent,
@@ -246,8 +247,8 @@ export function SongFormDialog({
                         value={p.id}
                         defaultChecked={checked}
                       />
-                      <span>
-                        {p.emoji ? `${p.emoji} ` : ""}
+                      <span className="inline-flex items-center gap-1">
+                        {p.emoji && <Emoji value={p.emoji} />}
                         {p.name}
                       </span>
                     </label>

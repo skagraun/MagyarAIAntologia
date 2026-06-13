@@ -6,7 +6,9 @@ import { coverUrl, normalizeForSearch } from "@/lib/utils";
 import { formatHuDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Emoji } from "@/components/emoji";
 import { SearchBar } from "@/components/search-bar";
+import { FilterSelect } from "@/components/filter-select";
 import { YoutubeLink } from "@/components/media";
 import { DeleteButton } from "@/components/delete-button";
 import { deleteSong } from "@/lib/actions/songs";
@@ -30,6 +32,8 @@ export function SongList({
   playlists: PlaylistOption[];
 }) {
   const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [playlist, setPlaylist] = useState("all");
   const playlistById = useMemo(
     () => new Map(playlists.map((p) => [p.id, p])),
     [playlists],
@@ -37,24 +41,55 @@ export function SongList({
 
   const filtered = useMemo(() => {
     const q = normalizeForSearch(query);
-    if (!q) return songs;
     return songs.filter((s) => {
+      if (status === "published" && !s.published) return false;
+      if (status === "unpublished" && s.published) return false;
+      if (playlist !== "all" && !s.playlistIds.includes(playlist)) return false;
+      if (!q) return true;
       const hay = normalizeForSearch(`${s.author} ${s.title} ${s.style ?? ""}`);
       return hay.includes(q);
     });
-  }, [songs, query]);
+  }, [songs, query, status, playlist]);
+
+  const hasFilter = query !== "" || status !== "all" || playlist !== "all";
 
   return (
     <div className="space-y-4">
-      <SearchBar
-        value={query}
-        onChange={setQuery}
-        placeholder="Keresés szerzőre, címre, stílusra…"
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchBar
+          value={query}
+          onChange={setQuery}
+          placeholder="Keresés szerzőre, címre, stílusra…"
+        />
+        <FilterSelect
+          value={status}
+          onChange={setStatus}
+          aria-label="Állapot szűrő"
+          options={[
+            { value: "all", label: "Minden állapot" },
+            { value: "published", label: "Megjelent" },
+            { value: "unpublished", label: "Bemutató előtt" },
+          ]}
+        />
+        {playlists.length > 0 && (
+          <FilterSelect
+            value={playlist}
+            onChange={setPlaylist}
+            aria-label="Lejátszási lista szűrő"
+            options={[
+              { value: "all", label: "Minden lista" },
+              ...playlists.map((p) => ({
+                value: p.id,
+                label: `${p.emoji ? p.emoji + " " : ""}${p.name}`,
+              })),
+            ]}
+          />
+        )}
+      </div>
 
-      {query && (
+      {hasFilter && (
         <p className="text-sm text-muted-foreground">
-          {filtered.length} találat a(z) „{query}" keresésre
+          {filtered.length} találat (összesen {songs.length})
         </p>
       )}
 
@@ -130,7 +165,7 @@ export function SongList({
                         if (!p) return null;
                         return (
                           <Badge key={id} variant="secondary" title={p.name}>
-                            {p.emoji ?? p.name}
+                            {p.emoji ? <Emoji value={p.emoji} /> : p.name}
                           </Badge>
                         );
                       })}
