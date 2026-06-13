@@ -45,6 +45,19 @@ export function parseYoutubeId(input: string): string {
   return value;
 }
 
+/**
+ * Kereséshez normalizál: kisbetűsít és eltávolítja az ékezeteket, így a
+ * "peto" is megtalálja a "Petőfi"-t. Üres/nullás bemenetre üres stringet ad.
+ */
+export function normalizeForSearch(value: string | null | undefined): string {
+  if (!value) return "";
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
 /** Magyar dátumformázás (pl. 2026. 06. 13.). */
 export function formatHuDate(value: string | Date | null | undefined): string {
   if (!value) return "—";
