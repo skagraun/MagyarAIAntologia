@@ -35,6 +35,7 @@ export type SongFormData = {
   releaseDate: string | null;
   published: boolean;
   coverImageUrl: string | null;
+  hyperfollowUrl: string | null;
   playlistIds: string[];
 };
 
@@ -190,6 +191,21 @@ export function SongFormDialog({
                 defaultValue={song?.releaseDate ?? ""}
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="hyperfollowUrl">DistroKid Hyperfollow link</Label>
+            <Input
+              id="hyperfollowUrl"
+              name="hyperfollowUrl"
+              type="url"
+              defaultValue={song?.hyperfollowUrl ?? ""}
+              placeholder="https://distrokid.com/hyperfollow/…"
+            />
+            <p className="text-xs text-muted-foreground">
+              Ha ki van töltve, a streaming linkek (Spotify, Apple Music, stb.)
+              naponta automatikusan frissülnek innen.
+            </p>
           </div>
 
           {/* Borító */}

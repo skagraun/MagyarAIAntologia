@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { songStreamingLinks } from "@/db/schema";
 import { requireUser } from "@/lib/auth/session";
+import { syncSongStreamingLinks } from "@/lib/hyperfollow";
 import { str } from "./form";
 
 const SONGS_PATH = "/dalok";
@@ -29,4 +30,16 @@ export async function deleteStreamingLink(formData: FormData): Promise<void> {
     revalidatePath(SONGS_PATH);
     revalidatePath(LISTEN_PATH);
   }
+}
+
+/** Kézi trigger: a dal Hyperfollow oldaláról frissíti a streaming linkeket. */
+export async function syncStreamingLinksFromHyperfollow(
+  formData: FormData,
+): Promise<void> {
+  await requireUser();
+  const songId = str(formData, "songId");
+  if (!songId) return;
+  await syncSongStreamingLinks(songId);
+  revalidatePath(SONGS_PATH);
+  revalidatePath(LISTEN_PATH);
 }

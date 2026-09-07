@@ -64,6 +64,7 @@ export async function saveSong(
     releaseDate: dateStr(formData, "releaseDate"),
     published: bool(formData, "published"),
     coverImageUrl,
+    hyperfollowUrl: str(formData, "hyperfollowUrl"),
     updatedAt: new Date(),
   };
 

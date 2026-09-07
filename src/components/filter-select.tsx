@@ -1,10 +1,17 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export type FilterOption = { value: string; label: string };
+export type FilterOption = { value: string; label: ReactNode };
 
-/** Egyszerű, natív legördülő szűrő a listák tetejére. */
+/** Legördülő szűrő a listák tetejére — a design rendszer Select komponensével. */
 export function FilterSelect({
   value,
   onChange,
@@ -19,20 +26,20 @@ export function FilterSelect({
   "aria-label"?: string;
 }) {
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      aria-label={ariaLabel}
-      className={cn(
-        "h-9 rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-        className,
-      )}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger
+        aria-label={ariaLabel}
+        className={className ?? "w-full sm:max-w-xs"}
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((o) => (
+          <SelectItem key={o.value} value={o.value}>
+            {o.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

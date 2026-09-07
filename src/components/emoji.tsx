@@ -33,7 +33,8 @@ export function Emoji({
         className={className}
         style={{
           height: "1em",
-          width: "auto",
+          width: "1em",
+          objectFit: "cover",
           display: "inline-block",
           verticalAlign: "-0.15em",
           borderRadius: "2px",

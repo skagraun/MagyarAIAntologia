@@ -34,6 +34,7 @@ export default async function SongsPage() {
     releaseDate: song.releaseDate,
     published: song.published,
     coverImageUrl: song.coverImageUrl,
+    hyperfollowUrl: song.hyperfollowUrl,
     playlistIds: song.songPlaylists.map((sp) => sp.playlistId),
     workingTitles: song.workingTitles.map((w) => ({
       id: w.id,

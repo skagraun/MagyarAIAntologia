@@ -10,6 +10,7 @@ import {
   date,
   primaryKey,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ---------------------------------------------------------------------------
@@ -85,6 +86,8 @@ export const songs = pgTable(
      * Ha ki van töltve (pl. Vercel Blob URL), az írja felül a YT borítót.
      */
     coverImageUrl: text("cover_image_url"),
+    /** DistroKid Hyperfollow oldal linkje — innen szinkronizálódnak a streaming linkek. */
+    hyperfollowUrl: text("hyperfollow_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -107,7 +110,10 @@ export const songStreamingLinks = pgTable(
     url: text("url").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("song_streaming_links_song_idx").on(t.songId)],
+  (t) => [
+    index("song_streaming_links_song_idx").on(t.songId),
+    uniqueIndex("song_streaming_links_song_platform_idx").on(t.songId, t.platform),
+  ],
 );
 
 // ---------------------------------------------------------------------------

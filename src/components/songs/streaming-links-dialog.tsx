@@ -1,14 +1,16 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Link2, Trash2, ExternalLink } from "lucide-react";
+import { Link2, Trash2, ExternalLink, RefreshCw } from "lucide-react";
 import {
   addStreamingLink,
   deleteStreamingLink,
+  syncStreamingLinksFromHyperfollow,
 } from "@/lib/actions/streaming-links";
 import { STREAMING_PLATFORM_ORDER, streamingPlatformRank } from "@/lib/labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SubmitButton } from "@/components/submit-button";
 import {
   Dialog,
   DialogContent,
@@ -24,10 +26,12 @@ export function StreamingLinksDialog({
   songId,
   songTitle,
   links,
+  hyperfollowUrl,
 }: {
   songId: string;
   songTitle: string;
   links: StreamingLink[];
+  hyperfollowUrl?: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const datalistId = useId();
@@ -58,6 +62,26 @@ export function StreamingLinksDialog({
           <DialogTitle>Streaming linkek</DialogTitle>
           <DialogDescription>{songTitle}</DialogDescription>
         </DialogHeader>
+
+        {hyperfollowUrl && (
+          <form
+            action={syncStreamingLinksFromHyperfollow}
+            className="flex items-center justify-between gap-2 rounded-md border bg-muted/40 p-2"
+          >
+            <input type="hidden" name="songId" value={songId} />
+            <p className="min-w-0 truncate text-xs text-muted-foreground">
+              Automatikus forrás: Hyperfollow
+            </p>
+            <SubmitButton
+              type="submit"
+              variant="outline"
+              size="sm"
+              pendingText="Szinkronizálás…"
+            >
+              <RefreshCw className="h-3.5 w-3.5" /> Szinkronizálás most
+            </SubmitButton>
+          </form>
+        )}
 
         <div className="space-y-2">
           {sorted.length === 0 && (

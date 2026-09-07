@@ -2,14 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { ImageOff, ExternalLink } from "lucide-react";
-import { coverUrl, normalizeForSearch, formatHuDate } from "@/lib/utils";
+import { coverUrl, normalizeForSearch, formatHuDate, youtubeUrl } from "@/lib/utils";
 import { streamingPlatformRank } from "@/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Emoji } from "@/components/emoji";
 import { SearchBar } from "@/components/search-bar";
 import { FilterSelect } from "@/components/filter-select";
-import { YoutubeLink } from "@/components/media";
+
+const LINK_PILL_CLASS =
+  "inline-flex items-center gap-1 rounded-md border bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/70";
 
 export type PublicPlaylistOption = { id: string; emoji: string | null; name: string };
 
@@ -69,7 +71,12 @@ export function PublicSongList({
               { value: "all", label: "Minden lista" },
               ...playlists.map((p) => ({
                 value: p.id,
-                label: `${p.emoji ? p.emoji + " " : ""}${p.name}`,
+                label: (
+                  <span className="inline-flex items-center gap-1">
+                    {p.emoji && <Emoji value={p.emoji} />}
+                    {p.name}
+                  </span>
+                ),
               })),
             ]}
           />
@@ -148,15 +155,26 @@ export function PublicSongList({
                     </div>
                   )}
 
-                  {links.length > 0 && (
+                  {(song.ytId || links.length > 0) && (
                     <div className="flex flex-wrap gap-1.5">
+                      {song.ytId && (
+                        <a
+                          href={youtubeUrl(song.ytId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={LINK_PILL_CLASS}
+                        >
+                          YouTube
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
                       {links.map((link) => (
                         <a
                           key={link.id}
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-md border bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/70"
+                          className={LINK_PILL_CLASS}
                         >
                           {link.platform}
                           <ExternalLink className="h-3 w-3" />
@@ -165,11 +183,10 @@ export function PublicSongList({
                     </div>
                   )}
 
-                  <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+                  <div className="mt-auto pt-1">
                     <span className="text-xs text-muted-foreground">
                       {formatHuDate(song.releaseDate)}
                     </span>
-                    <YoutubeLink ytId={song.ytId} label="YouTube" />
                   </div>
                 </div>
               </Card>

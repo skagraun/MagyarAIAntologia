@@ -87,7 +87,12 @@ export function SongList({
               { value: "all", label: "Minden lista" },
               ...playlists.map((p) => ({
                 value: p.id,
-                label: `${p.emoji ? p.emoji + " " : ""}${p.name}`,
+                label: (
+                  <span className="inline-flex items-center gap-1">
+                    {p.emoji && <Emoji value={p.emoji} />}
+                    {p.name}
+                  </span>
+                ),
               })),
             ]}
           />
@@ -194,6 +199,7 @@ export function SongList({
                         songId={song.id}
                         songTitle={`${song.author} — ${song.title}`}
                         links={song.streamingLinks}
+                        hyperfollowUrl={song.hyperfollowUrl}
                       />
                       <SongFormDialog
                         trigger="edit"
