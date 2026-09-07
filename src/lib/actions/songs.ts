@@ -18,6 +18,7 @@ import type { ActionState } from "./types";
 type WtStatus = (typeof workingTitleStatus.enumValues)[number];
 
 const SONGS_PATH = "/dalok";
+const LISTEN_PATH = "/hallgatas";
 
 /** Dal létrehozása vagy módosítása (az `id` mező megléte dönt). */
 export async function saveSong(
@@ -90,6 +91,7 @@ export async function saveSong(
   }
 
   revalidatePath(SONGS_PATH);
+  revalidatePath(LISTEN_PATH);
   return { ok: true };
 }
 
@@ -99,6 +101,7 @@ export async function deleteSong(formData: FormData): Promise<void> {
   if (id) {
     await db.delete(songs).where(eq(songs.id, id));
     revalidatePath(SONGS_PATH);
+    revalidatePath(LISTEN_PATH);
   }
 }
 
@@ -112,6 +115,7 @@ export async function toggleSongPublished(formData: FormData): Promise<void> {
       .set({ published, updatedAt: new Date() })
       .where(eq(songs.id, id));
     revalidatePath(SONGS_PATH);
+    revalidatePath(LISTEN_PATH);
   }
 }
 

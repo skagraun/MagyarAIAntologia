@@ -13,6 +13,7 @@ export default async function SongsPage() {
       with: {
         songPlaylists: true,
         workingTitles: { orderBy: (w) => [asc(w.createdAt)] },
+        streamingLinks: { orderBy: (l) => [asc(l.createdAt)] },
       },
     }),
     db
@@ -39,6 +40,11 @@ export default async function SongsPage() {
       title: w.title,
       status: w.status,
       note: w.note,
+    })),
+    streamingLinks: song.streamingLinks.map((l) => ({
+      id: l.id,
+      platform: l.platform,
+      url: l.url,
     })),
   }));
 

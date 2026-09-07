@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Music4, Heart, Lightbulb, ListMusic, Mail, LogOut } from "lucide-react";
+import {
+  Music4,
+  Heart,
+  Lightbulb,
+  ListMusic,
+  Mail,
+  LogOut,
+  Headphones,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/auth/actions";
@@ -64,6 +72,15 @@ export function Nav({
               <span className="hidden md:inline">Meghívók</span>
             </Link>
           )}
+          <Link
+            href="/hallgatas"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          >
+            <Headphones className="h-4 w-4" />
+            <span className="hidden md:inline">Hallgatás (publikus)</span>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">

@@ -1,45 +1,39 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ImageOff } from "lucide-react";
-import { coverUrl, normalizeForSearch } from "@/lib/utils";
-import { formatHuDate } from "@/lib/utils";
+import { ImageOff, ExternalLink } from "lucide-react";
+import { coverUrl, normalizeForSearch, formatHuDate } from "@/lib/utils";
+import { streamingPlatformRank } from "@/lib/labels";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Emoji } from "@/components/emoji";
 import { SearchBar } from "@/components/search-bar";
 import { FilterSelect } from "@/components/filter-select";
 import { YoutubeLink } from "@/components/media";
-import { DeleteButton } from "@/components/delete-button";
-import { deleteSong } from "@/lib/actions/songs";
-import {
-  SongFormDialog,
-  type SongFormData,
-  type PlaylistOption,
-} from "@/components/songs/song-form-dialog";
-import {
-  WorkingTitlesDialog,
-  type WorkingTitle,
-} from "@/components/songs/working-titles-dialog";
-import {
-  StreamingLinksDialog,
-  type StreamingLink,
-} from "@/components/songs/streaming-links-dialog";
 
-export type SongCard = SongFormData & {
-  workingTitles: WorkingTitle[];
-  streamingLinks: StreamingLink[];
+export type PublicPlaylistOption = { id: string; emoji: string | null; name: string };
+
+export type PublicSongCard = {
+  id: string;
+  trackNumber: number | null;
+  author: string;
+  title: string;
+  style: string | null;
+  ytId: string | null;
+  releaseDate: string | null;
+  coverImageUrl: string | null;
+  playlistIds: string[];
+  streamingLinks: { id: string; platform: string; url: string }[];
 };
 
-export function SongList({
+export function PublicSongList({
   songs,
   playlists,
 }: {
-  songs: SongCard[];
-  playlists: PlaylistOption[];
+  songs: PublicSongCard[];
+  playlists: PublicPlaylistOption[];
 }) {
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("all");
   const [playlist, setPlaylist] = useState("all");
   const playlistById = useMemo(
     () => new Map(playlists.map((p) => [p.id, p])),
@@ -49,16 +43,14 @@ export function SongList({
   const filtered = useMemo(() => {
     const q = normalizeForSearch(query);
     return songs.filter((s) => {
-      if (status === "published" && !s.published) return false;
-      if (status === "unpublished" && s.published) return false;
       if (playlist !== "all" && !s.playlistIds.includes(playlist)) return false;
       if (!q) return true;
       const hay = normalizeForSearch(`${s.author} ${s.title} ${s.style ?? ""}`);
       return hay.includes(q);
     });
-  }, [songs, query, status, playlist]);
+  }, [songs, query, playlist]);
 
-  const hasFilter = query !== "" || status !== "all" || playlist !== "all";
+  const hasFilter = query !== "" || playlist !== "all";
 
   return (
     <div className="space-y-4">
@@ -67,16 +59,6 @@ export function SongList({
           value={query}
           onChange={setQuery}
           placeholder="Keresés szerzőre, címre, stílusra…"
-        />
-        <FilterSelect
-          value={status}
-          onChange={setStatus}
-          aria-label="Állapot szűrő"
-          options={[
-            { value: "all", label: "Minden állapot" },
-            { value: "published", label: "Megjelent" },
-            { value: "unpublished", label: "Bemutató előtt" },
-          ]}
         />
         {playlists.length > 0 && (
           <FilterSelect
@@ -103,7 +85,7 @@ export function SongList({
       {filtered.length === 0 ? (
         <p className="py-10 text-center text-muted-foreground">
           {songs.length === 0
-            ? 'Még nincs dal rögzítve. Kattints az „Új dal" gombra.'
+            ? "Még nincs megjelent dal."
             : "Nincs a keresésnek megfelelő dal."}
         </p>
       ) : (
@@ -113,9 +95,12 @@ export function SongList({
               coverImageUrl: song.coverImageUrl,
               ytId: song.ytId,
             });
+            const links = [...song.streamingLinks].sort(
+              (a, b) =>
+                streamingPlatformRank(a.platform) - streamingPlatformRank(b.platform),
+            );
             return (
               <Card key={song.id} className="flex overflow-hidden">
-                {/* Borító — bal oldalt, teljes magasságban */}
                 <div className="relative w-28 shrink-0 bg-muted sm:w-32">
                   {cover ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -137,32 +122,16 @@ export function SongList({
                   )}
                 </div>
 
-                {/* Részletek */}
                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="truncate text-xs text-muted-foreground">
-                        {song.author}
-                      </div>
-                      <div className="font-semibold leading-tight">
-                        {song.title}
-                      </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-xs text-muted-foreground">
+                      {song.author}
                     </div>
-                    {song.published ? (
-                      <Badge variant="success" className="shrink-0">
-                        Megjelent
-                      </Badge>
-                    ) : (
-                      <Badge variant="warning" className="shrink-0">
-                        Bemutató előtt
-                      </Badge>
-                    )}
+                    <div className="font-semibold leading-tight">{song.title}</div>
                   </div>
 
                   {song.style && (
-                    <div className="text-sm text-muted-foreground">
-                      {song.style}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{song.style}</div>
                   )}
 
                   {song.playlistIds.length > 0 && (
@@ -179,34 +148,28 @@ export function SongList({
                     </div>
                   )}
 
+                  {links.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {links.map((link) => (
+                        <a
+                          key={link.id}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-md border bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/70"
+                        >
+                          {link.platform}
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="mt-auto flex items-end justify-between gap-2 pt-1">
-                    <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
-                      <span>{formatHuDate(song.releaseDate)}</span>
-                      <YoutubeLink ytId={song.ytId} />
-                    </div>
-                    <div className="flex items-center gap-0.5">
-                      <WorkingTitlesDialog
-                        songId={song.id}
-                        songTitle={`${song.author} — ${song.title}`}
-                        workingTitles={song.workingTitles}
-                      />
-                      <StreamingLinksDialog
-                        songId={song.id}
-                        songTitle={`${song.author} — ${song.title}`}
-                        links={song.streamingLinks}
-                      />
-                      <SongFormDialog
-                        trigger="edit"
-                        playlists={playlists}
-                        song={song}
-                      />
-                      <DeleteButton
-                        id={song.id}
-                        action={deleteSong}
-                        label="Dal törlése"
-                        description={`Biztosan törlöd: ${song.author} — ${song.title}? A Suno munkacímek is törlődnek.`}
-                      />
-                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {formatHuDate(song.releaseDate)}
+                    </span>
+                    <YoutubeLink ytId={song.ytId} label="YouTube" />
                   </div>
                 </div>
               </Card>

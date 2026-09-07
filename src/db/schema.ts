@@ -92,6 +92,25 @@ export const songs = pgTable(
 );
 
 // ---------------------------------------------------------------------------
+// 1/a2 — Streaming linkek (Spotify, Apple Music, stb. — a Distrokid feltöltés után)
+// ---------------------------------------------------------------------------
+
+export const songStreamingLinks = pgTable(
+  "song_streaming_links",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    songId: uuid("song_id")
+      .notNull()
+      .references(() => songs.id, { onDelete: "cascade" }),
+    /** Platform neve (pl. "Spotify", "Apple Music"). Szabad szöveg. */
+    platform: text("platform").notNull(),
+    url: text("url").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("song_streaming_links_song_idx").on(t.songId)],
+);
+
+// ---------------------------------------------------------------------------
 // 1/b — Lejátszási listák (M:N a dalokkal)
 // ---------------------------------------------------------------------------
 
@@ -182,7 +201,18 @@ export const ideas = pgTable("ideas", {
 export const songsRelations = relations(songs, ({ many }) => ({
   songPlaylists: many(songPlaylists),
   workingTitles: many(songWorkingTitles),
+  streamingLinks: many(songStreamingLinks),
 }));
+
+export const songStreamingLinksRelations = relations(
+  songStreamingLinks,
+  ({ one }) => ({
+    song: one(songs, {
+      fields: [songStreamingLinks.songId],
+      references: [songs.id],
+    }),
+  }),
+);
 
 export const playlistsRelations = relations(playlists, ({ many }) => ({
   songPlaylists: many(songPlaylists),
@@ -223,6 +253,8 @@ export type NewPlaylist = typeof playlists.$inferInsert;
 export type SongPlaylist = typeof songPlaylists.$inferSelect;
 export type SongWorkingTitle = typeof songWorkingTitles.$inferSelect;
 export type NewSongWorkingTitle = typeof songWorkingTitles.$inferInsert;
+export type SongStreamingLink = typeof songStreamingLinks.$inferSelect;
+export type NewSongStreamingLink = typeof songStreamingLinks.$inferInsert;
 export type WishlistItem = typeof wishlist.$inferSelect;
 export type NewWishlistItem = typeof wishlist.$inferInsert;
 export type Idea = typeof ideas.$inferSelect;
